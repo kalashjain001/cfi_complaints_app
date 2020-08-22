@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "628590718209",
+    "firebase_url": "https://cfi-complaints-app.firebaseio.com",
+    "project_id": "cfi-complaints-app",
+    "storage_bucket": "cfi-complaints-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628590718209:android:3736cf24b688573edebf00",
+        "android_client_info": {
+          "package_name": "com.example.cfi_complaints_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "628590718209-kv4lj1qhksvufkb7st550c94n1np8ld9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBapd7slCtU_RBqZrViu0CmU0JsPM-oITE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "628590718209-kv4lj1qhksvufkb7st550c94n1np8ld9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
