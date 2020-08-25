@@ -1,25 +1,31 @@
 import 'dart:io';
+import 'package:cfi_complaints_app/models/Complaint.dart';
+import 'package:cfi_complaints_app/models/user.dart';
 import 'package:cfi_complaints_app/services/auth.dart';
+import 'package:cfi_complaints_app/services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
 
   @override
-  _HomeState createState() => _HomeState();
+  HomeState createState() => HomeState();
 }
 
-class _HomeState extends State<Home> {
+class HomeState extends State<Home> {
 
   List<Asset> images = List<Asset>();
-  String _error = 'No Image Selected';
-  String compTitle;
-  String compDescription;
-  StorageReference _refernce = FirebaseStorage.instance.ref().child('myimage.jpg');
-  String downloadUrl;
+  String _error = 'No Image Added yet';
+  final compTitle = TextEditingController();
+  final compDescription = TextEditingController();
+  int i=0;
+  int complaintCount = 0;
+  List<String> downloadUrl = List<String>();
 
   @override
   void initState() {
@@ -28,6 +34,9 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+
+    final user = Provider.of<User>(context);
+    final DatabaseService db = DatabaseService(user.uid);
     final AuthService _auth = AuthService();
     final List<Tab> myTabs = <Tab>[
       Tab(text: 'New Complaint'),
@@ -55,7 +64,7 @@ class _HomeState extends State<Home> {
         body: TabBarView(
           children: myTabs.map((Tab tab) {
             final String label = tab.text;
-            return label == 'New Complaint' ? Comp() : all();
+            return label == 'New Complaint' ? Comp(db) : All();
           }).toList(),
         ),
       ),
@@ -75,20 +84,42 @@ class _HomeState extends State<Home> {
     return file;
   }
 
-  Future<void> uploadImage() async {
-    File temp = await getImageFileFromAssets(images[0]);
-    StorageUploadTask uploadTask = _refernce.putFile(temp);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    print('Uploaded');
-  }
 
-  Future<void> downloadImage() async{
-    String downloadAddress = await _refernce.getDownloadURL();
+  void submitComp(DatabaseService db) async{
+    for (int imgCount=1; imgCount <= images.length; imgCount++) {
+      StorageReference imageReference = FirebaseStorage.instance.ref().child(
+          'Complaint$complaintCount image$imgCount.jpg');
+      File temp = await getImageFileFromAssets(images[imgCount-1]);
+      StorageUploadTask uploadTask = imageReference.putFile(temp);
+      StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+      String downloadAddress = await imageReference.getDownloadURL();
+      print(downloadAddress);
+      setState(() {
+        downloadUrl.add(downloadAddress);
+      });
+    }
+    complaintCount++;
+    await db.enterUserData(compTitle.text, compDescription.text, downloadUrl, complaintCount);
+    compTitle.text = '';
+    compDescription.text = '';
     setState(() {
-      downloadUrl = downloadAddress;
+      images.removeRange(0, images.length);
+      downloadUrl.removeRange(0, downloadUrl.length);
     });
   }
 
+
+  Future<void> uploadImage() async {
+
+  }
+/*
+  Future<void> downloadImage() async{
+    String downloadAddress = await _refernce.getDownloadURL();
+    setState(() {
+      downloadUrl.add(downloadAddress);
+    });
+  }
+*/
   Future<void> loadAssets() async {
     List<Asset> resultList = List<Asset>();
     String error = 'No Image Selected';
@@ -129,7 +160,7 @@ class _HomeState extends State<Home> {
     });
   }
 
-  Widget Comp() {
+  Widget Comp(DatabaseService db) {
     return ListView(
       children: <Widget>[
         Padding(
@@ -139,11 +170,7 @@ class _HomeState extends State<Home> {
               labelText: 'Title',
             ),
             maxLines: null,
-            onChanged: (value){
-              setState(() {
-                compTitle = value;
-              });
-            },
+            controller: compTitle,
           ),
         ),
         Padding(
@@ -152,11 +179,7 @@ class _HomeState extends State<Home> {
             decoration: InputDecoration(
               labelText: 'Description',
             ),
-            onChanged: (value){
-              setState(() {
-                compDescription = value;
-              });
-            },
+            controller: compDescription,
             maxLines: null,
           ),
         ),
@@ -179,7 +202,7 @@ class _HomeState extends State<Home> {
         ),
         Center(
           child: RaisedButton(
-            child: Text('Select images'),
+            child: Text('Add Images'),
             onPressed: loadAssets,
           ),
         ),
@@ -189,6 +212,7 @@ class _HomeState extends State<Home> {
         Center(
           child: RaisedButton(
             child: Text('Submit Complaint'),
+            onPressed:() => submitComp(db),
           ),
         ),
         SizedBox(height: 20,),
@@ -202,26 +226,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget all() {
-    return Center(
-      child: ListView(
-        children: <Widget>[
-          RaisedButton(
-            child: Text('Download Image'),
-            onPressed: downloadImage,
-            ),
-          if(downloadUrl!=null)
-            Card(
-              child: Container(
-                child: Image.network(downloadUrl),
-                height: 300,
-                width: 300,
-              ),
-            ),
-        ],
-      )
-    );
-  }
+
 
   Widget dispImages() {
     return Container(
@@ -244,3 +249,86 @@ class _HomeState extends State<Home> {
     );
   }
 }
+/*
+class All extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<User>(context);
+
+    return StreamBuilder <QuerySnapshot>(
+      stream: DatabaseService(user.uid).myComplaints,
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+        if(snapshot.data.documents!=null) {
+          List<Complaint> myComp = snapshot.data.documents.map((doc) {
+            return Complaint(
+              title: doc.data['title'],
+              description: doc.data['description'],
+              images_url: doc.data['images_url'],
+            );
+          }).toList();
+          return ListView.builder(
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Card(
+                  margin: EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 0.0),
+                  child: ListTile(
+                    title: Text(myComp[index].title),
+                    subtitle: Text(myComp[index].description),
+                  ),
+                ),
+              );
+            },
+            itemCount: myComp.length,
+          );
+        }
+        else{
+          return Center(child: Text('No Complaints yet'),);
+        }
+      },
+    );
+  }
+}*/
+
+class All extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+
+    final user = Provider.of<User>(context);
+    return StreamProvider<List<Complaint>>.value(
+      value: DatabaseService(user.uid).myComplaints,
+      child: ComplaintsList(),
+    );
+  }
+}
+
+
+class ComplaintsList extends StatefulWidget {
+  @override
+  _ComplaintsListState createState() => _ComplaintsListState();
+}
+
+class _ComplaintsListState extends State<ComplaintsList> {
+
+  @override
+  Widget build(BuildContext context) {
+
+    final myComplaints = Provider.of<List<Complaint>>(context);
+    return myComplaints!=null ? ListView.builder(
+        itemCount: myComplaints.length,
+        itemBuilder: (context, index) {
+          Complaint complaint = myComplaints[index];
+          return Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Card(
+              margin: EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 0.0),
+              child: ListTile(
+                title: Text(complaint.title),
+                subtitle: Text(complaint.description),
+              ),
+            ),
+          );
+    }) : Center(child: Text('No Complaints yet'),);
+  }
+}
+
