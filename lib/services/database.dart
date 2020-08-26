@@ -1,18 +1,18 @@
 import 'package:cfi_complaints_app/models/Complaint.dart';
+import 'package:cfi_complaints_app/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 class DatabaseService {
 
   final String uid;
-  int i=0;
 
   DatabaseService(this.uid);
 
   // collection reference
   final CollectionReference allComplaints = Firestore.instance.collection('All Complaints');
 
-  Future<void> enterUserData(String title, String description, List<String> images_url,int i) async {
-
+  Future<void> enterUserData(String title, String description, List<String> images_url, int i) async {
     return await allComplaints.document(uid).collection('My Complaints').document('Complaint $i').setData({
       'title': title,
       'description': description,
@@ -40,5 +40,8 @@ class DatabaseService {
   Stream<List<Complaint>> get myComplaints {
     return allComplaints.document(uid).collection('My Complaints').snapshots()
         .map(_complaintListFromSnapshot);
+  }
+  Future<int> complaintsLength() async{
+    return allComplaints.document(uid).collection('My Complaints').snapshots().length;
   }
 }

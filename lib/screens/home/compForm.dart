@@ -1,44 +1,114 @@
+import 'dart:io';
+import 'package:cfi_complaints_app/models/Complaint.dart';
+import 'package:cfi_complaints_app/models/user.dart';
+import 'package:cfi_complaints_app/services/database.dart';
+import 'package:cfi_complaints_app/shared/loading.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
-class CompForm extends StatefulWidget {
+class NewComplaint extends StatefulWidget {
   @override
-  _CompFormState createState() => _CompFormState();
+  _NewComplaintState createState() => _NewComplaintState();
 }
 
-class _CompFormState extends State<CompForm> {
-
+class _NewComplaintState extends State<NewComplaint> {
   List<Asset> images = List<Asset>();
-  String _error = 'No Image Selected';
+  String _error = 'No Image Added yet';
+  final compTitle = TextEditingController();
+  final compDescription = TextEditingController();
+  int i;
+  int complaintCount;
+  List<String> downloadUrl = List<String>();
+  bool loading = false;
+  String process = 'Submitting Complaint';
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Tab> myTabs = <Tab>[
-      Tab(text: 'New Complaint'),
-      Tab(text: 'My Complaints'),
-    ];
-    return DefaultTabController(
-      length: myTabs.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Complaints'),
-          bottom: TabBar(
-            tabs: myTabs,
-          ),
-          elevation: 0.0,
+    final user = Provider.of<User>(context);
+    final DatabaseService db = DatabaseService(user.uid);
+    final myComplaints = Provider.of<List<Complaint>>(context);
+    complaintCount = myComplaints!=null ? myComplaints.length : 0;
 
+    return loading ? Loading(process) : ListView(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+          child: TextField(
+            decoration: InputDecoration(
+              labelText: 'Title',
+            ),
+            maxLines: null,
+            controller: compTitle,
+          ),
         ),
-        body: TabBarView(
-          children: myTabs.map((Tab tab) {
-            final String label = tab.text;
-            return label == 'New Complaint' ? Comp() : all();
-          }).toList(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: TextField(
+            decoration: InputDecoration(
+              labelText: 'Description',
+            ),
+            controller: compDescription,
+            maxLines: null,
+          ),
         ),
+        (_error != null)
+            ? Container(
+                height: 100,
+                child: Center(
+                    child: Text(
+                  _error,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 20,
+                  ),
+                )),
+              )
+            : SizedBox(
+                height: 20,
+              ),
+        if (images.length != 0) dispImages(),
+        SizedBox(
+          height: 20,
+        ),
+        Center(
+          child: RaisedButton(
+            child: Text('Add Images'),
+            onPressed: loadAssets,
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Center(
+          child: RaisedButton(
+            child: Text('Submit Complaint'),
+            onPressed: () => submitComp(db),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget dispImages() {
+    return Container(
+      height: 200,
+      child: ListView.builder(
+        itemCount: images.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          Asset asset = images[index];
+          return Card(
+            child: AssetThumb(
+              asset: asset,
+              width: 300,
+              height: 300,
+            ),
+          );
+        },
       ),
     );
   }
@@ -78,82 +148,55 @@ class _CompFormState extends State<CompForm> {
 
     setState(() {
       images = resultList;
-      _error = error;
+      if (images != null) _error = null;
     });
   }
 
-  Widget Comp() {
-    return ListView(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Title',
-            ),
-            maxLines: null,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Description',
-            ),
-            maxLines: null,
-          ),
-        ),
-        if(images.length != 0)
-          SizedBox(
-            height: 20,
-          ),
-        if(images.length != 0)
-          dispImages(),
-        SizedBox(
-          height: 20,
-        ),
-        Center(
-          child: RaisedButton(
-            child: Text('Add images'),
-            onPressed: loadAssets,
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        Center(
-          child: RaisedButton(
-            child: Text('Submit Complaint'),
-          ),
-        ),
-      ],
+  Future<File> getImageFileFromAssets(Asset asset) async {
+    final byteData = await asset.getByteData();
+
+    final tempFile =
+        File("${(await getTemporaryDirectory()).path}/${asset.name}");
+    final file = await tempFile.writeAsBytes(
+      byteData.buffer
+          .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
     );
+
+    return file;
   }
 
-  Widget all() {
-    return Center(
-      child: Text('All Complaints'),
-    );
-  }
-
-  Widget dispImages() {
-    return Container(
-      height: 200,
-      child: ListView.builder(
-        itemCount: images.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          Asset asset = images[index];
-          return Card(
-
-            child: AssetThumb(
-              asset: asset,
-              width: 300,
-              height: 300,
-            ),
-          );
-        },
-      ),
-    );
+  void submitComp(DatabaseService db) async {
+    setState(() {
+      if(images.length!=0)
+        process = 'Uploading images';
+      loading = true;
+    });
+    if (images.length != 0) {
+      for (int imgCount = 1; imgCount <= images.length; imgCount++) {
+        StorageReference imageReference = FirebaseStorage.instance
+            .ref()
+            .child('Complaint$complaintCount image$imgCount.jpg');
+        File temp = await getImageFileFromAssets(images[imgCount - 1]);
+        StorageUploadTask uploadTask = imageReference.putFile(temp);
+        StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+        String downloadAddress = await imageReference.getDownloadURL();
+        setState(() {
+          downloadUrl.add(downloadAddress);
+        });
+      }
+    }
+    setState(() {
+      process = 'Submitting Complaint';
+    });
+    complaintCount++;
+    await db.enterUserData(
+        compTitle.text, compDescription.text, downloadUrl, complaintCount);
+    compTitle.text = '';
+    compDescription.text = '';
+    setState(() {
+      loading = false;
+      images.removeRange(0, images.length);
+      downloadUrl.removeRange(0, downloadUrl.length);
+    });
   }
 }

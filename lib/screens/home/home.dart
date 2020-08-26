@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:cfi_complaints_app/models/Complaint.dart';
 import 'package:cfi_complaints_app/models/user.dart';
+import 'package:cfi_complaints_app/screens/home/compForm.dart';
+import 'package:cfi_complaints_app/screens/home/complaintsList.dart';
 import 'package:cfi_complaints_app/services/auth.dart';
 import 'package:cfi_complaints_app/services/database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +13,8 @@ import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import 'myComplaints.dart';
+
 class Home extends StatefulWidget {
 
   @override
@@ -19,13 +23,13 @@ class Home extends StatefulWidget {
 
 class HomeState extends State<Home> {
 
-  List<Asset> images = List<Asset>();
+  /*List<Asset> images = List<Asset>();
   String _error = 'No Image Added yet';
   final compTitle = TextEditingController();
   final compDescription = TextEditingController();
   int i=0;
   int complaintCount = 0;
-  List<String> downloadUrl = List<String>();
+  List<String> downloadUrl = List<String>();*/
 
   @override
   void initState() {
@@ -64,12 +68,13 @@ class HomeState extends State<Home> {
         body: TabBarView(
           children: myTabs.map((Tab tab) {
             final String label = tab.text;
-            return label == 'New Complaint' ? Comp(db) : All();
+            return label == 'New Complaint' ? NewComplaint() : ComplaintsList();
           }).toList(),
         ),
       ),
     );
   }
+  /*
 
   Future<File> getImageFileFromAssets(Asset asset) async {
     final byteData = await asset.getByteData();
@@ -107,19 +112,6 @@ class HomeState extends State<Home> {
       downloadUrl.removeRange(0, downloadUrl.length);
     });
   }
-
-
-  Future<void> uploadImage() async {
-
-  }
-/*
-  Future<void> downloadImage() async{
-    String downloadAddress = await _refernce.getDownloadURL();
-    setState(() {
-      downloadUrl.add(downloadAddress);
-    });
-  }
-*/
   Future<void> loadAssets() async {
     List<Asset> resultList = List<Asset>();
     String error = 'No Image Selected';
@@ -215,18 +207,9 @@ class HomeState extends State<Home> {
             onPressed:() => submitComp(db),
           ),
         ),
-        SizedBox(height: 20,),
-        Center(
-          child: RaisedButton(
-            child: Text('Upload Image'),
-            onPressed: uploadImage,
-          )
-        )
       ],
     );
   }
-
-
 
   Widget dispImages() {
     return Container(
@@ -247,7 +230,7 @@ class HomeState extends State<Home> {
         },
       ),
     );
-  }
+  }*/
 }
 /*
 class All extends StatelessWidget{
@@ -289,7 +272,7 @@ class All extends StatelessWidget{
     );
   }
 }*/
-
+/*
 class All extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -330,5 +313,5 @@ class _ComplaintsListState extends State<ComplaintsList> {
           );
     }) : Center(child: Text('No Complaints yet'),);
   }
-}
+}*/
 
