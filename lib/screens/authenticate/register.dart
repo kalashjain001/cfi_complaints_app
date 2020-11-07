@@ -1,4 +1,6 @@
 import 'package:cfi_complaints_app/services/auth.dart';
+import 'package:cfi_complaints_app/shared/loading.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -21,6 +23,8 @@ class _RegisterState extends State<Register> {
   String email = '';
   String password = '';
   String error = '';
+  bool loading = false;
+  String process = 'Signing up';
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +44,7 @@ class _RegisterState extends State<Register> {
           )
         ],
       ),
-      body: Container(
+      body: loading ? Loading(process) :  Container(
           padding: EdgeInsets.symmetric(vertical: 20,horizontal: 50),
           child: Form(
             key: _formKey,
@@ -48,6 +52,9 @@ class _RegisterState extends State<Register> {
               children: <Widget>[
                 SizedBox(height: 20.0),
                 TextFormField(
+                  decoration: InputDecoration(
+                    hintText: 'Email',
+                  ),
                   onChanged: (val){
                     setState(() {
                       email = val;
@@ -57,12 +64,15 @@ class _RegisterState extends State<Register> {
                 ),
                 SizedBox(height: 20.0),
                 TextFormField(
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                  ),
                   onChanged: (val){
                     setState(() {
                       password = val;
                     });
                   },
-                  validator: (val) => val.length < 6 ? 'Enter a password 6+ chars long' : null,
+                  validator: (val) => val.length < 8 ? 'Enter a password 8+ chars long' : null,
                   obscureText: true,
                 ),
                 SizedBox(height: 20.0),
@@ -74,11 +84,15 @@ class _RegisterState extends State<Register> {
                   ),
                   onPressed: () async{
                     if(_formKey.currentState.validate()){
+                      setState(() {
+                        loading = true;
+                      });
                       dynamic result = await _auth.registerWithEmailAndPassword(email, password);
+                      setState(() {
+                        loading = false;
+                      });
                       if(result == null){
-                        setState(() {
-                          error = 'Please enter a valid email';
-                        });
+                        error = 'Please enter a valid email';
                         Fluttertoast.showToast(
                           msg: error,
                           toastLength: Toast.LENGTH_LONG,
@@ -87,15 +101,6 @@ class _RegisterState extends State<Register> {
                           fontSize:14.0,
                         );
                       }
-                    }
-                    else{
-                      Fluttertoast.showToast(
-                        msg: 'Error in Credentials',
-                        toastLength: Toast.LENGTH_LONG,
-                        backgroundColor: Colors.white,
-                        textColor: Colors.black,
-                        fontSize:14.0,
-                      );
                     }
                   },
                 )

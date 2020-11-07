@@ -1,4 +1,4 @@
-import 'package:cfi_complaints_app/screens/home/compForm.dart';
+import 'package:cfi_complaints_app/screens/home/newComplaint.dart';
 import 'package:cfi_complaints_app/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
     return StreamProvider<User>.value(
       value: AuthService().user,
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Wrapper(),
       ),
     );
