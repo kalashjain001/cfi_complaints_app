@@ -35,9 +35,14 @@ class _RegisterState extends State<Register> {
         elevation: 0.0,
         title: Text('Sign Up'),
         actions: <Widget>[
-          FlatButton.icon(
-            icon: Icon(Icons.person),
-            label: Text('Sign In'),
+          TextButton.icon(
+            icon: Icon(Icons.person, color: Colors.black,),
+            label: Text(
+              'Sign In',
+              style: TextStyle(
+                color: Colors.black
+              ),
+            ),
             onPressed: (){
               widget.toggleView();
             },
@@ -76,8 +81,10 @@ class _RegisterState extends State<Register> {
                   obscureText: true,
                 ),
                 SizedBox(height: 20.0),
-                RaisedButton(
-                  color: Colors.pink[400],
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.pink[400]),
+                  ),
                   child: Text(
                     'Register',
                     style: TextStyle(color: Colors.white),

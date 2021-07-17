@@ -1,4 +1,3 @@
-import 'package:cfi_complaints_app/screens/home/newComplaint.dart';
 import 'package:cfi_complaints_app/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,13 +21,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-/*
-class MyApp extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: CompForm(),
-    );
-  }
-}*/

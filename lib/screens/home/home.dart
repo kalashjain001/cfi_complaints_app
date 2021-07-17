@@ -33,12 +33,15 @@ class Home extends StatelessWidget {
             ),
             elevation: 0.0,
             actions: <Widget>[
-              FlatButton.icon(
+              TextButton.icon(
                   onPressed: () async {
                     await _auth.signOut();
                   },
-                  icon: Icon(Icons.person),
-                  label: Text('logout'))
+                  icon: Icon(Icons.person, color: Colors.black,),
+                  label: Text(
+                    'logout',
+                    style: TextStyle(color: Colors.black),
+                  ))
             ],
           ),
           body: TabBarView(

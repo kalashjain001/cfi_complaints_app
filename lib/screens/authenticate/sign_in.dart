@@ -33,9 +33,14 @@ class _SignInState extends State<SignIn> {
         elevation: 0.0,
         title: Text('Sign In'),
         actions: <Widget>[
-          FlatButton.icon(
-            icon: Icon(Icons.person),
-            label: Text('Register'),
+          TextButton.icon(
+            icon: Icon(Icons.person, color: Colors.black,),
+            label: Text(
+              'Register',
+              style: TextStyle(
+                color: Colors.black
+              ),
+            ),
             onPressed: (){
               widget.toggleView();
             },
@@ -71,11 +76,13 @@ class _SignInState extends State<SignIn> {
                     });
                   },
                   obscureText: true,
-                  validator: (val) => val.length < 6 ? 'Enter a password 8+ chars long' : null,
+                  validator: (val) => val.length < 8 ? 'Enter a password 8+ chars long' : null,
                 ),
                 SizedBox(height: 20.0),
-                RaisedButton(
-                  color: Colors.pink[400],
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.pink[400]),
+                  ),
                   child: Text(
                     'Sign In',
                     style: TextStyle(color: Colors.white),

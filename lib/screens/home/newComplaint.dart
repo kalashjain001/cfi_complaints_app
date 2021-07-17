@@ -15,13 +15,13 @@ class NewComplaint extends StatefulWidget {
 }
 
 class _NewComplaintState extends State<NewComplaint> {
-  List<Asset> images = List<Asset>();
+  List<Asset> images = [];
   String _error = 'No Image Added yet';
   final compTitle = TextEditingController();
   final compDescription = TextEditingController();
   int i;
   int complaintCount;
-  List<String> downloadUrl = List<String>();
+  List<String> downloadUrl = [];
   bool loading = false;
   String process = 'Submitting Complaint...';
 
@@ -75,7 +75,7 @@ class _NewComplaintState extends State<NewComplaint> {
           height: 20,
         ),
         Center(
-          child: RaisedButton(
+          child: ElevatedButton(
             child: Text('Add Images'),
             onPressed: loadAssets,
           ),
@@ -84,7 +84,7 @@ class _NewComplaintState extends State<NewComplaint> {
           height: 20,
         ),
         Center(
-          child: RaisedButton(
+          child: ElevatedButton(
             child: Text('Submit Complaint'),
             onPressed: () => submitComp(db, user.uid),
           ),
@@ -114,7 +114,7 @@ class _NewComplaintState extends State<NewComplaint> {
   }
 
   Future<void> loadAssets() async {
-    List<Asset> resultList = List<Asset>();
+    List<Asset> resultList = [];
     String error = 'No Image Selected';
 
     try {

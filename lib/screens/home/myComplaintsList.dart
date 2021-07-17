@@ -53,14 +53,14 @@ class _ComplaintsListState extends State<ComplaintsList> {
                               return AlertDialog(
                                 title: Text('Delete Complaint?'),
                                 actions: <Widget>[
-                                  FlatButton(
+                                  TextButton(
                                     child: Text('Yes'),
                                     onPressed: () async {
                                       Navigator.pop(context);
                                       await db.deleteComplaint(complaint);
                                     },
                                   ),
-                                  FlatButton(
+                                  TextButton(
                                     child: Text('Cancel'),
                                     onPressed: () {
                                       Navigator.pop(context);
