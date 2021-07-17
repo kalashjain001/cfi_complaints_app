@@ -25,6 +25,8 @@ class _ComplaintsListState extends State<ComplaintsList> {
             itemCount: myComplaints.length,
             itemBuilder: (context, index) {
               Complaint complaint = myComplaints[index];
+              String title = (complaint.title.length > 30) ? complaint.title.substring(0, 20) + "...": complaint.title;
+              String description = (complaint.description.length > 30) ? complaint.description.substring(0, 20)+ "...": complaint.description;
               return Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: InkWell(
@@ -38,8 +40,8 @@ class _ComplaintsListState extends State<ComplaintsList> {
                     elevation: 2,
                     margin: EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 0.0),
                     child: ListTile(
-                      title: Text(complaint.title),
-                      subtitle: Text(complaint.description),
+                      title: Text(title),
+                      subtitle: Text(description),
                       trailing: IconButton(
                         icon: Icon(
                           Icons.delete,
